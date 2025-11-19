@@ -8,10 +8,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5000:5000"
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=password123
+    env_file:
+      - .env
+    # You can override environment variables here if needed
+    # environment:
+    #   - REDIS_HOST=redis
+    #   - REDIS_PORT=6379
     # depends_on:
       # - redis
 

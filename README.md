@@ -25,9 +25,21 @@ This project is a Flask web application for uploading, saving, downloading, rena
    ```bash
    pip install -r requirements.txt
    ```
-3. **Configure Redis:**
-   - Update `server_address`, `redis_port`, and `redis_pass` in `app.py` if needed.
-   - Start your Redis server.
+3. **Configure Environment Variables:**
+   - Copy `.env.example` to `.env`:
+     ```bash
+     cp .env.example .env
+     ```
+   - Edit `.env` and update the following variables:
+     - `FLASK_SECRET_KEY`: Change to a strong random secret key
+     - `REDIS_HOST`: Your Redis server hostname/IP
+     - `REDIS_PORT`: Your Redis server port (default: 6379)
+     - `REDIS_PASSWORD`: Your Redis password (leave empty if none)
+     - `DEFAULT_USER`: Default username for file operations
+     - `DEFAULT_ROLE`: User role (admin or user)
+   
+4. **Start your Redis server:**
+   - Make sure Redis is running and accessible at the configured host and port
 
 ## Running the App
 ```bash

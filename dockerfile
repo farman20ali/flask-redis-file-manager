@@ -13,11 +13,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code into the container
 COPY . .
 
-# Set environment variables for Redis
-ENV REDIS_HOST=redis
-ENV REDIS_PORT=6379
-ENV REDIS_PASSWORD=password123
-
 # Expose port 5000 for the Flask app
 EXPOSE 5000
 

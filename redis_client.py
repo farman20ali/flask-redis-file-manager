@@ -3,6 +3,10 @@
 import time
 import redis
 import bcrypt
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class Redis():
@@ -18,7 +22,7 @@ class Redis():
         try:
             self.client = redis.Redis(host=self.redis_host, port=self.redis_port, password=self.redis_password)
         except redis.ConnectionError as e:
-            print(f"Error connecting to Redis: {e}")
+            logger.error(f"Error connecting to Redis: {e}")
             self.client = None
 
     def isConnected(self):
@@ -31,20 +35,20 @@ class Redis():
                 return True
             return False
         except redis.AuthenticationError as e:
-            print(f"Authentication error: {e}")
+            logger.error(f"Authentication error: {e}")
             return False
         except redis.ConnectionError as e:
-            print(f"Connection error: {e}")
+            logger.error(f"Connection error: {e}")
             return False
         except Exception as e:
-            print(f"Unknown error: {e}")
+            logger.error(f"Unknown error: {e}")
             return False
 
     def setKey(self, key, value):
         try:
             return self.client.set(key, value)
         except Exception as e:
-            print(f"Error setting key: {e}")
+            logger.error(f"Error setting key: {e}")
             return False
     
     def setPassword(self, key, value):
@@ -52,12 +56,12 @@ class Redis():
             hashed_password = bcrypt.hashpw(value.encode('utf-8'), bcrypt.gensalt())
             return self.client.set(key+"-user", hashed_password)
         except Exception as e:
-            print(f"Error setting password: {e}")
+            logger.error(f"Error setting password: {e}")
             return False
     
     def getKey(self, key):
         if not self.client.exists(key):
-            print(f"Key '{key}' does not exist.")
+            logger.warning(f"Key '{key}' does not exist.")
             return None
         data_type = self.getType(key)
         try:
@@ -69,10 +73,10 @@ class Redis():
                 result = self.getAllRange(key)
                 return result
             else:
-                print('data type mismatch')
+                logger.error('data type mismatch')
                 return None
         except Exception as e:
-            print(f"Error getting key: {e}")
+            logger.error(f"Error getting key: {e}")
             return None
         
     def authenticate_user(self, username, password):
@@ -85,21 +89,21 @@ class Redis():
                     return True
             return False
         except Exception as e:
-            print(f"Error authenticating user: {e}")
+            logger.error(f"Error authenticating user: {e}")
             return False
     
     def deleteKey(self, key):
         try:
             return self.client.delete(key)
         except Exception as e:
-            print(f"Error deleting key: {e}")
+            logger.error(f"Error deleting key: {e}")
             return False
 
     def clear_data_lrem(self, key, start_index, end_index):
         try:
             self.client.lrem(key, start_index, end_index)
         except Exception as e:
-            print(f"Error clearing data: {e}")
+            logger.error(f"Error clearing data: {e}")
 
     def getAllKeys(self, pattern):
         try:
@@ -107,7 +111,7 @@ class Redis():
             result_list = self.decode(data, 'list')
             return result_list
         except Exception as e:
-            print(f"Error getting all keys: {e}")
+            logger.error(f"Error getting all keys: {e}")
             return []
 
     def getType(self, key):
@@ -117,21 +121,21 @@ class Redis():
                 return data_type.decode()
             return data_type
         except Exception as e:
-            print(f"Error getting type: {e}")
+            logger.error(f"Error getting type: {e}")
             return None
 
     def appendRpush(self, key, data):
         try:
             return self.client.rpush(key, data)
         except Exception as e:
-            print(f"Error appending data to list (rpush): {e}")
+            logger.error(f"Error appending data to list (rpush): {e}")
             return False
 
     def appendLpush(self, key, data):
         try:
             return self.client.lpush(key, data)
         except Exception as e:
-            print(f"Error appending data to list (lpush): {e}")
+            logger.error(f"Error appending data to list (lpush): {e}")
             return False
 
     def getAllRange(self, key):
@@ -141,7 +145,7 @@ class Redis():
             list_values = self.decode(data, data_type)
             return list_values
         except Exception as e:
-            print(f"Error getting all range: {e}")
+            logger.error(f"Error getting all range: {e}")
             return []
 
     def getIndexLRange(self, key, start_index, end_index):
@@ -151,7 +155,7 @@ class Redis():
             list_values = self.decode(data, data_type)
             return list_values
         except Exception as e:
-            print(f"Error getting index range: {e}")
+            logger.error(f"Error getting index range: {e}")
             return []
     def key_exists(self,key):
         return self.client.exists(key) > 0
@@ -170,7 +174,7 @@ class Redis():
             else:
                 return data
         except Exception as e:
-            print(f"Error decoding data: {e}")
+            logger.error(f"Error decoding data: {e}")
             return None
 
     def close(self):
@@ -178,7 +182,7 @@ class Redis():
             if self.client:
                 self.client.close()
         except Exception as e:
-            print(f"Error closing connection: {e}")
+            logger.error(f"Error closing connection: {e}")
 
 
 # Example usage
