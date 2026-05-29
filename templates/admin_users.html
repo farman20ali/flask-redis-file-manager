@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="section">
+    <div class="section-title">
+        <h3>User management</h3>
+        <span class="pill">Admin only</span>
+    </div>
+
+    <div class="grid cols-2">
+        <div class="card">
+            <div class="card-head">
+                <h4 class="card-title">Create user</h4>
+                <span class="muted">Add a new account to Redis</span>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('admin_users') }}">
+                    <input type="hidden" name="action" value="create">
+                    <div class="field">
+                        <label for="create_username">Username</label>
+                        <input type="text" id="create_username" name="username" placeholder="new-user">
+                    </div>
+                    <div class="field">
+                        <label for="create_password">Password</label>
+                        <input type="password" id="create_password" name="password" placeholder="Minimum 6 characters">
+                    </div>
+                    <div class="field">
+                        <label for="create_role">Role</label>
+                        <select id="create_role" name="role">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn" type="submit">Create user</button>
+                        <a class="btn secondary" href="{{ url_for('index') }}">Back to dashboard</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <h4 class="card-title">Existing users</h4>
+                <span class="muted">Edit in place</span>
+            </div>
+            <div class="card-body">
+                <div class="muted-block">Seeded admin: <strong>{{ current_user.username }}</strong></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="card">
+        <div class="card-body" style="overflow-x: auto;">
+            <div class="search" style="max-width: 360px; margin-bottom: 14px;">
+                <input id="user-search" type="text" placeholder="Search users..." oninput="filterCards('user-search', 'tbody tr')">
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Active</th>
+                        <th>Password reset</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                        <tr data-search="{{ user.username }} {{ user.role }} {{ user.active }}">
+                            <td>{{ user.username }}</td>
+                            <td>
+                                <form method="post" action="{{ url_for('admin_users') }}" class="inline-form">
+                                    <input type="hidden" name="action" value="update">
+                                    <input type="hidden" name="username" value="{{ user.username }}">
+                                    <select name="role">
+                                        <option value="user" {% if user.role == 'user' %}selected{% endif %}>User</option>
+                                        <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                                    </select>
+                            </td>
+                            <td>
+                                    <select name="active">
+                                        <option value="1" {% if user.active == '1' %}selected{% endif %}>Active</option>
+                                        <option value="0" {% if user.active == '0' %}selected{% endif %}>Disabled</option>
+                                    </select>
+                            </td>
+                            <td>
+                                    <input type="password" name="password" placeholder="Leave blank to keep current">
+                            </td>
+                            <td>
+                                    <div class="btn-row">
+                                        <button class="btn" type="submit">Save</button>
+                                    </div>
+                                </form>
+                                {% if user.username != 'admin' %}
+                                    <form method="post" action="{{ url_for('admin_users') }}" class="inline-form" onsubmit="return confirm('Delete this user?')">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="username" value="{{ user.username }}">
+                                        <button class="btn danger" type="submit">Delete</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

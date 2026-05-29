@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+{% block content %}
+<section id="uploads" class="section">
+    <div class="section-title">
+        <h3>Upload center</h3>
+        <span class="pill">{{ current_user.username }} · {{ current_user.role|capitalize }}</span>
+    </div>
+
+    <datalist id="user-options">
+        {% for user in users %}
+            <option value="{{ user.username }}">{{ user.username }} ({{ user.role|capitalize }})</option>
+        {% endfor %}
+    </datalist>
+
+    <div class="card">
+        <div class="card-head">
+            <h4 class="card-title">Upload and share</h4>
+            <span class="muted">One place for files, folders, expiry, visibility, and passwords</span>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" action="{{ url_for('index') }}">
+                <div class="grid cols-2">
+                    <div class="field">
+                        <label for="file">Choose file</label>
+                        <input type="file" id="file" name="file">
+                    </div>
+                    <div class="field">
+                        <label for="send_to">Owner / recipient</label>
+                        <input type="text" id="send_to" name="send_to" list="user-options" placeholder="Search and select a user">
+                    </div>
+                </div>
+                <div class="grid cols-3">
+                    <div class="field">
+                        <label for="visibility">Visibility</label>
+                        <select id="visibility" name="visibility">
+                            <option value="private" selected>Private</option>
+                            <option value="public">Public for guest access</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="file_password">File password</label>
+                        <input type="password" id="file_password" name="file_password" placeholder="Optional password">
+                    </div>
+                    <div class="field">
+                        <label for="expiry_mode">Expiry</label>
+                        <select id="expiry_mode" name="expiry_mode" onchange="toggleExpiryControls('expiry_mode', 'file')">
+                            <option value="none" selected>No expiry</option>
+                            <option value="hours">Quick hours</option>
+                            <option value="custom">Custom date/time</option>
+                            <option value="days">Days</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid cols-3">
+                    <div class="field" id="file-hours-container" style="display:none;">
+                        <label for="expiry_hours">Quick hours</label>
+                        <select id="expiry_hours" name="expiry_hours">
+                            <option value="1">1 hour</option>
+                            <option value="4">4 hours</option>
+                            <option value="12">12 hours</option>
+                            <option value="24">24 hours</option>
+                            <option value="72">72 hours</option>
+                        </select>
+                    </div>
+                    <div class="field" id="file-custom-container" style="display:none;">
+                        <label for="expiry_at">Custom date/time</label>
+                        <input type="datetime-local" id="expiry_at" name="expiry_at">
+                    </div>
+                    <div class="field" id="file-days-container" style="display:none;">
+                        <label for="expiry_days">Days</label>
+                        <select id="expiry_days" name="expiry_days">
+                            <option value="1">1 day</option>
+                            <option value="7">7 days</option>
+                            <option value="30" selected>30 days</option>
+                            <option value="90">90 days</option>
+                            <option value="365">365 days</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-row" style="margin-top: 6px;">
+                    <button class="btn" type="submit">Upload file</button>
+                </div>
+            </form>
+
+            <details style="margin-top: 18px;">
+                <summary class="pill" style="cursor:pointer;">Upload folder</summary>
+                <div style="margin-top: 16px;">
+                    <form method="post" enctype="multipart/form-data" action="{{ url_for('index') }}">
+                        <div class="field">
+                            <label for="folder">Choose folder</label>
+                            <input type="file" id="folder" name="folder" multiple webkitdirectory directory>
+                        </div>
+                        <div class="field">
+                            <label for="filename">Archive name</label>
+                            <input type="text" id="filename" name="filename" placeholder="Project bundle">
+                        </div>
+                        <div class="field">
+                            <label for="send_to_folder">Owner / recipient</label>
+                            <input type="text" id="send_to_folder" name="send_to" list="user-options" placeholder="Optional: share to selected user">
+                        </div>
+                        <div class="grid cols-2">
+                            <div class="field">
+                                <label for="folder_visibility">Visibility</label>
+                                <select id="folder_visibility" name="visibility">
+                                    <option value="private" selected>Private</option>
+                                    <option value="public">Public for guest access</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label for="folder_file_password">File password</label>
+                                <input type="password" id="folder_file_password" name="file_password" placeholder="Optional password">
+                            </div>
+                        </div>
+                        <div class="grid cols-3">
+                            <div class="field">
+                                <label for="folder_expiry_mode">Expiry</label>
+                                <select id="folder_expiry_mode" name="expiry_mode" onchange="toggleExpiryControls('folder_expiry_mode', 'folder')">
+                                    <option value="none" selected>No expiry</option>
+                                    <option value="hours">Quick hours</option>
+                                    <option value="custom">Custom date/time</option>
+                                    <option value="days">Days</option>
+                                </select>
+                            </div>
+                            <div class="field" id="folder-hours-container" style="display:none;">
+                                <label for="folder_expiry_hours">Quick hours</label>
+                                <select id="folder_expiry_hours" name="expiry_hours">
+                                    <option value="1">1 hour</option>
+                                    <option value="4">4 hours</option>
+                                    <option value="12">12 hours</option>
+                                    <option value="24">24 hours</option>
+                                    <option value="72">72 hours</option>
+                                </select>
+                            </div>
+                            <div class="field" id="folder-custom-container" style="display:none;">
+                                <label for="folder_expiry_at">Custom date/time</label>
+                                <input type="datetime-local" id="folder_expiry_at" name="expiry_at">
+                            </div>
+                            <div class="field" id="folder-days-container" style="display:none;">
+                                <label for="folder_expiry_days">Days</label>
+                                <select id="folder_expiry_days" name="expiry_days">
+                                    <option value="1">1 day</option>
+                                    <option value="7">7 days</option>
+                                    <option value="30" selected>30 days</option>
+                                    <option value="90">90 days</option>
+                                    <option value="365">365 days</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="btn-row" style="margin-top: 6px;">
+                            <button class="btn secondary" type="submit">Upload folder</button>
+                        </div>
+                    </form>
+                </div>
+            </details>
+        </div>
+    </div>
+</section>
+
+<section id="text" class="section">
+    <div class="section-title">
+        <h3>Text workspace</h3>
+        <span class="muted">Search-friendly and file export ready</span>
+    </div>
+
+    <div class="grid cols-2">
+        <div class="card">
+            <div class="card-head">
+                <h4 class="card-title">Save text</h4>
+                <span class="muted">Keep notes or export as a file</span>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('save_text') }}">
+                    <div class="field">
+                        <label for="text">Text</label>
+                        <textarea id="text" name="text" placeholder="Write or paste text here"></textarea>
+                    </div>
+                    <div class="field">
+                        <label for="text_filename">File name for export</label>
+                        <input type="text" id="text_filename" name="text_filename" placeholder="note.txt">
+                    </div>
+                    <div class="grid cols-2">
+                        <div class="field">
+                            <label for="save_visibility">Visibility</label>
+                            <select id="save_visibility" name="visibility">
+                                <option value="private" selected>Private</option>
+                                <option value="public">Public for guest access</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="save_file_password">File password</label>
+                            <input type="password" id="save_file_password" name="file_password" placeholder="Optional password">
+                        </div>
+                    </div>
+                    <div class="grid cols-2">
+                        <div class="field">
+                            <label for="save_expiry_mode">Expiry</label>
+                            <select id="save_expiry_mode" name="expiry_mode" onchange="toggleExpiryControls('save_expiry_mode', 'save')">
+                                <option value="none" selected>No expiry</option>
+                                <option value="hours">Quick hours</option>
+                                <option value="custom">Custom date/time</option>
+                                <option value="days">Days</option>
+                            </select>
+                        </div>
+                        <div class="field" id="save-hours-container" style="display:none;">
+                            <label for="save_expiry_hours">Quick hours</label>
+                            <select id="save_expiry_hours" name="expiry_hours">
+                                <option value="1">1 hour</option>
+                                <option value="4">4 hours</option>
+                                <option value="12">12 hours</option>
+                                <option value="24">24 hours</option>
+                                <option value="72">72 hours</option>
+                            </select>
+                        </div>
+                        <div class="field" id="save-custom-container" style="display:none;">
+                            <label for="save_expiry_at">Custom date/time</label>
+                            <input type="datetime-local" id="save_expiry_at" name="expiry_at">
+                        </div>
+                        <div class="field" id="save-days-container" style="display:none;">
+                            <label for="save_expiry_days">Days</label>
+                            <select id="save_expiry_days" name="expiry_days">
+                                <option value="1">1 day</option>
+                                <option value="7">7 days</option>
+                                <option value="30" selected>30 days</option>
+                                <option value="90">90 days</option>
+                                <option value="365">365 days</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label><input type="checkbox" id="save_as_file" name="save_as_file"> Save as downloadable file</label>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn success" type="submit">Save text</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <h4 class="card-title">Retrieved text</h4>
+                <span class="muted">Quick download from Redis</span>
+            </div>
+            <div class="card-body">
+                <p class="muted-block">{{ retrieved_text }}</p>
+                <form method="post" action="{{ url_for('download_retrieved_text') }}">
+                    <input type="hidden" name="retrieved_text" value="{{ retrieved_text }}">
+                    <div class="btn-row">
+                        <button class="btn secondary" type="submit">Download text</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="files" class="section">
+    <div class="section-title">
+        <h3>Your files</h3>
+        <div class="pill">{{ total_files }} file{{ '' if total_files == 1 else 's' }}</div>
+        <div class="search" style="max-width: 380px; width: 100%;">
+            <input id="file-search" type="text" placeholder="Search files, owners, tags..." oninput="filterCards('file-search', '.file-card')">
+        </div>
+    </div>
+
+    {% if files %}
+        <div class="file-grid">
+            {% for file in files %}
+                <article class="file-card" data-search="{{ file.filename }} {{ file.owner }} {{ file.uploaded_by }} {{ file.source }} {{ file.share_url }}">
+                    <h4>{{ file.filename }}</h4>
+                    <div class="file-meta">
+                        <span>Owner: {{ file.owner }}</span>
+                        <span>Uploaded by: {{ file.uploaded_by }}</span>
+                        <span>Source: {{ file.source }}</span>
+                        <span>Size: {{ file.size_bytes }} bytes</span>
+                        <span>Created: {{ file.created_at or 'n/a' }}</span>
+                        <span>Expiry: {{ file.expires_at or 'no expiry' }}</span>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        {% if file.visibility == 'public' %}
+                            <span class="badge success">Public</span>
+                        {% else %}
+                            <span class="badge">Private</span>
+                        {% endif %}
+                        {% if file.password_protected %}
+                            <span class="badge warning">Password protected</span>
+                        {% endif %}
+                        {% if file.expires_at %}
+                            <span class="badge success">Expiry set</span>
+                        {% else %}
+                            <span class="badge">Permanent</span>
+                        {% endif %}
+                    </div>
+                    <div class="file-actions">
+                        <form class="inline-form" method="post" action="{{ url_for('download') }}">
+                            <input type="hidden" name="selected_option" value="{{ file.storage_key }}">
+                            <button class="btn" type="submit">Download</button>
+                        </form>
+                        {% if file.share_url %}
+                            <button class="btn secondary" type="button" onclick="copyText('{{ file.share_url }}')">Copy share link</button>
+                            <button class="btn ghost" type="button" data-target="qr-{{ loop.index }}" onclick="toggleQr(this)">Show QR</button>
+                        {% endif %}
+                        {% if current_user.role == 'admin' or current_user.username == file.owner %}
+                            <form class="inline-form" method="post" action="{{ url_for('share_with_user') }}" style="display:flex;gap:8px;align-items:center;">
+                                <input type="hidden" name="storage_key" value="{{ file.storage_key }}">
+                                <input type="text" name="share_username" list="user-options" placeholder="Share to user" style="padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--panel-strong);color:var(--text);">
+                                <button class="btn secondary" type="submit">Share</button>
+                            </form>
+                            <form class="inline-form" method="post" action="{{ url_for('delete_file') }}" onsubmit="return confirm('Delete this file?')">
+                                <input type="hidden" name="storage_key" value="{{ file.storage_key }}">
+                                <button class="btn danger" type="submit">Delete</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                    {% if file.shared_with %}
+                        <div style="margin-top:10px;">
+                            <div class="muted-block" style="margin-bottom:6px;">Shared with:</div>
+                            {% for share_user in file.shared_with %}
+                                <span class="badge">{{ share_user }}</span>
+                                {% if current_user.role == 'admin' or current_user.username == file.owner %}
+                                    <form class="inline-form" method="post" action="{{ url_for('share_with_user') }}" style="margin-right:8px;">
+                                        <input type="hidden" name="storage_key" value="{{ file.storage_key }}">
+                                        <input type="hidden" name="share_username" value="{{ share_user }}">
+                                        <input type="hidden" name="action" value="remove">
+                                        <button class="btn ghost" type="submit" style="padding:4px 8px;font-size:0.8rem;">Remove</button>
+                                    </form>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if file.qr_data_uri %}
+                        <div class="qr-box" id="qr-{{ loop.index }}">
+                            <img src="{{ file.qr_data_uri }}" alt="QR code for {{ file.filename }}">
+                            <div class="muted-block">
+                                <div><strong>Share URL</strong></div>
+                                <div style="word-break: break-all; margin-top: 6px;">{{ file.share_url }}</div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty">No files found for this account yet.</div>
+    {% endif %}
+
+    {% if total_pages > 1 or page > 1 %}
+        <div class="card">
+            <div class="card-body" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+                <div class="muted-block">Page {{ page }} of {{ total_pages }}</div>
+                <div class="btn-row">
+                    {% if prev_page %}
+                        <a class="btn secondary" href="{{ url_for('index', page=prev_page) }}">Previous</a>
+                    {% endif %}
+                    {% if next_page %}
+                        <a class="btn" href="{{ url_for('index', page=next_page) }}">Next</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</section>
+
+{% if current_user.role == 'admin' %}
+<section id="users" class="section">
+    <div class="section-title">
+        <h3>Admin user management</h3>
+        <span class="pill">Create, update, disable, or delete accounts</span>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div class="btn-row" style="margin-bottom: 16px;">
+                <a class="btn secondary" href="{{ url_for('admin_users') }}">Open admin users page</a>
+            </div>
+            <p class="muted-block">Use the dedicated admin page to manage passwords, roles, and active status.</p>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

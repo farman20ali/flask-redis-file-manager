@@ -1,6 +1,6 @@
 # Flask Redis File Manager
 
-This project is a Flask web application for uploading, saving, downloading, renaming, and managing text and file data using Redis as a backend. It supports both single file and folder uploads, with file data stored in Redis in base64-encoded chunks.
+This project is a Flask web application for uploading, saving, downloading, renaming, and managing text and file data using Redis as a backend. It supports single file and folder uploads, session-based login, guest access, admin user management, QR share links, file passwords, and expiry controls.
 
 ## Features
 - Upload and save text or files to Redis
@@ -9,6 +9,14 @@ This project is a Flask web application for uploading, saving, downloading, rena
 - List available files for download
 - Admin and user roles for file listing
 - Handles large files by chunking
+- Guest login for read/write use without a password
+- Admin user management for creating, updating, disabling, and deleting users
+- Per-file password protection and expiration
+- QR code share links for direct file access
+- Public files that guests can browse and download
+- Theme switching for default, light, and calm layouts
+- Searchable owner selection instead of typing usernames manually
+- Expiry controls for no expiry, quick hours, or custom date/time
 
 ## Requirements
 - Python 3.8+
@@ -40,10 +48,10 @@ This project is a Flask web application for uploading, saving, downloading, rena
        ```
 
 4. **Choose a Redis source:**
-    - Use an already running Redis instance by setting `REDIS_HOST`, `REDIS_PORT`, and `REDIS_PASSWORD` in `.env`
-    - Or create a new local Redis container with `make redis-up`
+   - Use an already running Redis instance by setting `REDIS_HOST`, `REDIS_PORT`, and `REDIS_PASSWORD` in `.env`
+   - Or create a new local Redis container with `make redis-up`
    - Or remove that Redis container and its data with `make redis-uninstall`
-    - Or let Docker Compose start Redis with the app using `make deploy-docker`
+   - Or let Docker Compose start Redis with the app using `make deploy-docker`
 
 ## Running the App
 ```bash
@@ -52,8 +60,8 @@ python app.py
 The app will be available at `http://localhost:5000` by default.
 
 ### Makefile shortcuts
-- `make deploy-local` - write local env values, install dependencies, and start the app
-- `make setup-local` - same as local deploy, without creating a Redis container
+- `make deploy-local` - prepare env for an existing local Redis instance and start the app
+- `make setup-local` - same as local deploy, but starts the app in the background
 - `make deploy-new-redis` - write local env values, install dependencies, start a Redis container, and start the app in the background
 - `make redis-uninstall` - stop and remove the local Redis container and its data volume
 - `make setup` - write local env values, install dependencies, start a Redis container, and start the app in the foreground

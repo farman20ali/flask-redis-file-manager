@@ -50,6 +50,72 @@ class Redis():
         except Exception as e:
             logger.error(f"Error setting key: {e}")
             return False
+
+    def setHash(self, key, mapping):
+        try:
+            return self.client.hset(key, mapping=mapping)
+        except Exception as e:
+            logger.error(f"Error setting hash: {e}")
+            return False
+
+    def getHash(self, key):
+        try:
+            data = self.client.hgetall(key)
+            if not data:
+                return None
+            return {k.decode('utf-8'): v.decode('utf-8') for k, v in data.items()}
+        except Exception as e:
+            logger.error(f"Error reading hash: {e}")
+            return None
+
+    def addToSet(self, key, value):
+        try:
+            return self.client.sadd(key, value)
+        except Exception as e:
+            logger.error(f"Error adding to set: {e}")
+            return False
+
+    def removeFromSet(self, key, value):
+        try:
+            return self.client.srem(key, value)
+        except Exception as e:
+            logger.error(f"Error removing from set: {e}")
+            return False
+
+    def getSetMembers(self, key):
+        try:
+            return [member.decode('utf-8') for member in self.client.smembers(key)]
+        except Exception as e:
+            logger.error(f"Error reading set members: {e}")
+            return []
+
+    def setExpiry(self, key, seconds):
+        try:
+            return self.client.expire(key, seconds)
+        except Exception as e:
+            logger.error(f"Error setting expiry: {e}")
+            return False
+
+    def getTTL(self, key):
+        try:
+            return self.client.ttl(key)
+        except Exception as e:
+            logger.error(f"Error reading ttl: {e}")
+            return -2
+
+    def deleteKeys(self, *keys):
+        try:
+            return self.client.delete(*keys)
+        except Exception as e:
+            logger.error(f"Error deleting keys: {e}")
+            return False
+
+    def getAllRedisKeys(self, pattern):
+        try:
+            return [key.decode('utf-8') for key in self.client.keys(pattern)]
+        except Exception as e:
+            logger.error(f"Error listing redis keys: {e}")
+            return []
     
     def setPassword(self, key, value):
         try:
@@ -57,6 +123,83 @@ class Redis():
             return self.client.set(key+"-user", hashed_password)
         except Exception as e:
             logger.error(f"Error setting password: {e}")
+            return False
+
+    def createOrUpdateUser(self, username, password, role='user', active='1'):
+        try:
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            mapping = {
+                'username': username,
+                'password_hash': hashed_password,
+                'role': role,
+                'active': str(active),
+            }
+            self.setHash(f'user:{username}', mapping)
+            self.addToSet('users', username)
+            return True
+        except Exception as e:
+            logger.error(f"Error creating/updating user: {e}")
+            return False
+
+    def updateUser(self, username, **fields):
+        try:
+            if not fields:
+                return False
+            return self.client.hset(f'user:{username}', mapping={k: str(v) for k, v in fields.items()})
+        except Exception as e:
+            logger.error(f"Error updating user: {e}")
+            return False
+
+    def getUser(self, username):
+        return self.getHash(f'user:{username}')
+
+    def listUsers(self):
+        usernames = self.getSetMembers('users')
+        users = []
+        for username in usernames:
+            user = self.getUser(username)
+            if user:
+                users.append(user)
+        users.sort(key=lambda item: item.get('username', ''))
+        return users
+
+    def deleteUserRecord(self, username):
+        try:
+            self.removeFromSet('users', username)
+            return self.deleteKeys(f'user:{username}')
+        except Exception as e:
+            logger.error(f"Error deleting user record: {e}")
+            return False
+
+    def verifyUserPassword(self, username, password):
+        try:
+            user = self.getUser(username)
+            if not user or user.get('active', '1') != '1':
+                return False
+            stored_password = user.get('password_hash', '')
+            return bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8'))
+        except Exception as e:
+            logger.error(f"Error verifying user password: {e}")
+            return False
+
+    def setFileMeta(self, storage_key, mapping):
+        try:
+            return self.setHash(f'filemeta:{storage_key}', mapping)
+        except Exception as e:
+            logger.error(f"Error setting file metadata: {e}")
+            return False
+
+    def getFileMeta(self, storage_key):
+        return self.getHash(f'filemeta:{storage_key}')
+
+    def listFileMetaKeys(self):
+        return self.getAllRedisKeys('filemeta:*')
+
+    def deleteFileBundle(self, storage_key):
+        try:
+            return self.deleteKeys(storage_key, f'filemeta:{storage_key}')
+        except Exception as e:
+            logger.error(f"Error deleting file bundle: {e}")
             return False
     
     def getKey(self, key):

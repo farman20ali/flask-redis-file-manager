@@ -9,5 +9,7 @@ jinja2
 MarkupSafe
 python-dotenv
 redis
+qrcode
+Pillow
 werkzeug
 zipp

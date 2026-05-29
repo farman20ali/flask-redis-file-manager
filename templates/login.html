@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="split" style="align-items: center; min-height: calc(100vh - 150px);">
+    <div>
+        <div class="pill">Guest access · admin control · QR sharing</div>
+        <h2 style="font-size: clamp(2rem, 4vw, 4rem); margin: 18px 0 12px;">A cleaner file manager with login, guest mode, and user roles.</h2>
+        <p class="muted" style="max-width: 60ch; line-height: 1.7;">Sign in to manage files, create users, add expiry and passwords, and share links with QR codes. Or enter as guest for a lighter session.</p>
+        <div class="grid cols-3" style="margin-top: 24px;">
+            <div class="card"><div class="card-body"><strong>Searchable library</strong><p class="muted">Filter files and find uploads fast.</p></div></div>
+            <div class="card"><div class="card-body"><strong>Expiry and passwords</strong><p class="muted">Set lifetime and access protection per file.</p></div></div>
+            <div class="card"><div class="card-body"><strong>Admin users</strong><p class="muted">Create, update, disable, or delete users.</p></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head">
+            <h3 class="card-title">Sign in</h3>
+            <span class="pill">Redis backed</span>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ url_for('login') }}">
+                <div class="field">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="admin or your account">
+                </div>
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter password">
+                </div>
+                <div class="btn-row">
+                    <button class="btn" type="submit" name="action" value="login">Login</button>
+                    <button class="btn secondary" type="submit" name="action" value="guest">Continue as Guest</button>
+                </div>
+            </form>
+            <p class="muted" style="margin: 16px 0 0;">Default admin is seeded from environment variables. Set your own credentials before production use.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

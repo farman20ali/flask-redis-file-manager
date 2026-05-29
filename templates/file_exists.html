@@ -1,92 +1,40 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>File Exists</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            color: #333;
-        }
-        p {
-            font-size: 18px;
-        }
-        .btn-group {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-        .btn-group form {
-            display: inline-block;
-            margin: 0;
-        }
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-        }
-        .btn-danger {
-            background-color: #e74c3c;
-            color: white;
-        }
-        .btn-primary {
-            background-color: #3498db;
-            color: white;
-        }
-        .btn-secondary {
-            background-color: #95a5a6;
-            color: white;
-        }
-        .input-group {
-            display: flex;
-            align-items: center;
-        }
-        .input-group input {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px 0 0 5px;
-            flex: 1;
-        }
-        .input-group .btn {
-            border-radius: 0 5px 5px 0;
-        }
-    </style>
-</head>
-<body >
-    <div class="container">
-        <h1>File '{{ filename }}' already exists</h1>
-        <p>Do you want to overwrite, rename, or cancel the upload?</p>
-        <div class="btn-group">
-            <form method="post" action="/overwrite">
-                <input type="hidden" name="send_to" value="{{ send_to }}">
-                <input type="hidden" name="filename" value="{{ filename }}">
-                <input type="hidden" name="encoded_data" value="{{ encoded_data }}">
-                <button type="submit" class="btn btn-danger">Overwrite</button>
-            </form>
-            <form method="post" action="/rename">
-                <input type="hidden" name="send_to" value="{{ send_to }}">
-                <input type="hidden" name="encoded_data" value="{{ encoded_data }}">
-                <div class="input-group">
-                    <input type="text" name="new_filename" placeholder="New Filename">
-                    <button type="submit" class="btn btn-primary">Rename</button>
-                </div>
-            </form>
-            <form method="get" action="/">
-                <button type="submit" class="btn btn-secondary">Cancel</button>
-            </form>
+{% extends 'base.html' %}
+{% block content %}
+<div class="section" style="max-width: 760px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-head">
+            <h3 class="card-title">File already exists</h3>
+            <span class="pill">{{ filename }}</span>
+        </div>
+        <div class="card-body">
+            <p class="muted-block">A file named <strong>{{ filename }}</strong> already exists for this owner. Choose what to do next.</p>
+            <div class="grid cols-2" style="margin-top: 18px;">
+                <form method="post" action="{{ url_for('overwrite') }}">
+                    <input type="hidden" name="send_to" value="{{ send_to }}">
+                    <input type="hidden" name="filename" value="{{ filename }}">
+                    <input type="hidden" name="encoded_data" value="{{ encoded_data }}">
+                    <input type="hidden" name="expiry_at" value="{{ expiry_at }}">
+                    <input type="hidden" name="file_password" value="{{ file_password }}">
+                    <input type="hidden" name="visibility" value="{{ visibility }}">
+                    <button type="submit" class="btn danger" style="width: 100%;">Overwrite</button>
+                </form>
+                <form method="post" action="{{ url_for('rename') }}">
+                    <input type="hidden" name="send_to" value="{{ send_to }}">
+                    <input type="hidden" name="encoded_data" value="{{ encoded_data }}">
+                    <input type="hidden" name="expiry_at" value="{{ expiry_at }}">
+                    <input type="hidden" name="file_password" value="{{ file_password }}">
+                    <input type="hidden" name="visibility" value="{{ visibility }}">
+                    <div class="field">
+                        <label for="new_filename">Rename to</label>
+                        <input type="text" id="new_filename" name="new_filename" placeholder="New filename">
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%;">Rename</button>
+                </form>
+            </div>
+            <div class="btn-row" style="margin-top: 18px;">
+                <a class="btn secondary" href="{{ url_for('index') }}">Cancel</a>
+            </div>
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
