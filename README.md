@@ -26,26 +26,43 @@ This project is a Flask web application for uploading, saving, downloading, rena
    pip install -r requirements.txt
    ```
 3. **Configure Environment Variables:**
-   - Copy `.env.example` to `.env`:
-     ```bash
-     cp .env.example .env
-     ```
-   - Edit `.env` and update the following variables:
-     - `FLASK_SECRET_KEY`: Change to a strong random secret key
-     - `REDIS_HOST`: Your Redis server hostname/IP
-     - `REDIS_PORT`: Your Redis server port (default: 6379)
-     - `REDIS_PASSWORD`: Your Redis password (leave empty if none)
-     - `DEFAULT_USER`: Default username for file operations
-     - `DEFAULT_ROLE`: User role (admin or user)
-   
-4. **Start your Redis server:**
-   - Make sure Redis is running and accessible at the configured host and port
+    - For an existing local Redis server, create a local env file:
+       ```bash
+       make env-local
+       ```
+    - To start a new Redis container for local development and write matching env values:
+       ```bash
+       make setup
+       ```
+    - To prepare Docker Compose settings instead:
+       ```bash
+       make env-docker
+       ```
+
+4. **Choose a Redis source:**
+    - Use an already running Redis instance by setting `REDIS_HOST`, `REDIS_PORT`, and `REDIS_PASSWORD` in `.env`
+    - Or create a new local Redis container with `make redis-up`
+   - Or remove that Redis container and its data with `make redis-uninstall`
+    - Or let Docker Compose start Redis with the app using `make deploy-docker`
 
 ## Running the App
 ```bash
 python app.py
 ```
 The app will be available at `http://localhost:5000` by default.
+
+### Makefile shortcuts
+- `make deploy-local` - write local env values, install dependencies, and start the app
+- `make setup-local` - same as local deploy, without creating a Redis container
+- `make deploy-new-redis` - write local env values, install dependencies, start a Redis container, and start the app in the background
+- `make redis-uninstall` - stop and remove the local Redis container and its data volume
+- `make setup` - write local env values, install dependencies, start a Redis container, and start the app in the foreground
+- `make start-local` - start the app in the background for easier stopping later
+- `make stop-local` - stop the background local app
+- `make uninstall-local` - stop the local app and remove generated `.env` and log files
+- `make deploy-docker` - write Docker env values and start the app with Redis in Compose
+- `make stop-docker` - stop the Docker deployment
+- `make uninstall-docker` - stop Docker and remove its Compose-managed resources
 
 ## Using Docker
 To run the app and Redis using Docker Compose:
